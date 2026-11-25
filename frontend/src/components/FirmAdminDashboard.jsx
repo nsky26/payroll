@@ -3,7 +3,7 @@ import { Play, CheckCircle2, Sparkles, UserPlus, FileText, ShieldAlert, ArrowLef
 import { apiFetch, formatMoney } from '../api';
 import HelpTip from './HelpTip';
 
-export default function FirmAdminDashboard({ user, helpMap, onHelpUpdated, inspectingFirm, onBackToSuper }) {
+export default function FirmAdminDashboard({ user, helpMap, onHelpUpdated, dropdowns = {}, inspectingFirm, onBackToSuper }) {
   const [data, setData] = useState(null);
   const [tab, setTab] = useState('payroll');
   const [payPeriod, setPayPeriod] = useState('2026-11');
@@ -269,8 +269,9 @@ export default function FirmAdminDashboard({ user, helpMap, onHelpUpdated, inspe
               <input required type="email" placeholder="Work Email" value={empForm.email} onChange={(e) => setEmpForm({ ...empForm, email: e.target.value })} className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white" />
               <div className="grid grid-cols-2 gap-2">
                 <select value={empForm.role} onChange={(e) => setEmpForm({ ...empForm, role: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white">
-                  <option value="employee">Employee</option>
-                  <option value="manager">Manager</option>
+                  {(dropdowns.employee_role || [{ value: 'employee', label: 'Employee' }, { value: 'manager', label: 'Manager' }]).map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
                 </select>
                 <input required type="number" placeholder="Monthly Salary" value={empForm.base_salary} onChange={(e) => setEmpForm({ ...empForm, base_salary: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white" />
               </div>

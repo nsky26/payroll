@@ -2,7 +2,7 @@
 
 **Project:** PayPulse AI  
 **Database Name:** `paypulse_ai` (MySQL 8.x on `localhost:3306`)  
-**Last Updated:** 2026-11-25 17:49:24 (+05:30)  
+**Last Updated:** 2026-11-25 18:02:33 (+05:30)  
 **Version:** 1.0  
 
 ---
@@ -23,6 +23,7 @@
 | 10 | `section_helps` | Global | Pre-filled & admin-editable `?` help text for every UI section |
 | 11 | `ai_api_keys` | Global / Firm | Multi-API key pool with token limits, usage counters & priority |
 | 12 | `ai_task_routing` | Global | Assigns specific API keys per task (`text`, `image`, `audit`, `copilot`) + auto-failover |
+| 13 | `dropdown_values` | Global | Database-driven dropdown options managed via Settings |
 
 ---
 

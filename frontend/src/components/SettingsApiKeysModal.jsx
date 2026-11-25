@@ -10,7 +10,7 @@ const TASK_LABELS = {
   copilot: 'Conversational Gemini Copilot'
 };
 
-export default function SettingsApiKeysModal({ open, onClose, user, helpMap, onHelpUpdated }) {
+export default function SettingsApiKeysModal({ open, onClose, user, helpMap, onHelpUpdated, dropdowns = {} }) {
   const [keys, setKeys] = useState([]);
   const [routing, setRouting] = useState([]);
   const [msg, setMsg] = useState('');
@@ -179,16 +179,14 @@ export default function SettingsApiKeysModal({ open, onClose, user, helpMap, onH
             <input required placeholder="Label (e.g. LLM-4 Gemini Pro)" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white" />
             <input required placeholder="API Key (AIza...)" value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white" />
             <select value={form.model_name} onChange={(e) => setForm({ ...form, model_name: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white">
-              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-              <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-              <option value="gemini-2.0-pro">gemini-2.0-pro</option>
+              {(dropdowns.ai_model || [{ value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' }]).map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
             <select value={form.task_type} onChange={(e) => setForm({ ...form, task_type: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white">
-              <option value="all">Task: All (Failover Pool)</option>
-              <option value="text">Task: Text</option>
-              <option value="image">Task: Image / OCR</option>
-              <option value="audit">Task: Payroll Audit</option>
-              <option value="copilot">Task: Copilot</option>
+              {(dropdowns.ai_task_type || [{ value: 'all', label: 'Task: All (Failover Pool)' }]).map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
             <input type="number" placeholder="Token Limit" value={form.token_limit} onChange={(e) => setForm({ ...form, token_limit: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white" />
             <div className="flex items-center justify-between gap-2">

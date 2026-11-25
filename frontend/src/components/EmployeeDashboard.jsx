@@ -3,7 +3,7 @@ import { FileText, Receipt, Calendar, Sparkles } from 'lucide-react';
 import { apiFetch, formatMoney } from '../api';
 import HelpTip from './HelpTip';
 
-export default function EmployeeDashboard({ user, helpMap, onHelpUpdated }) {
+export default function EmployeeDashboard({ user, helpMap, onHelpUpdated, dropdowns = {}, currencies = [] }) {
   const [data, setData] = useState(null);
   const [receiptText, setReceiptText] = useState('');
   const [reimb, setReimb] = useState({ title: '', category: 'Travel', amount: '', currency_code: user.currency_code || 'USD', policy_check_status: '' });
@@ -111,11 +111,15 @@ export default function EmployeeDashboard({ user, helpMap, onHelpUpdated }) {
             <input required placeholder="Expense Title" value={reimb.title} onChange={(e) => setReimb({ ...reimb, title: e.target.value })} className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white" />
             <div className="grid grid-cols-3 gap-2">
               <select value={reimb.category} onChange={(e) => setReimb({ ...reimb, category: e.target.value })} className="px-2 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white">
-                <option>Travel</option><option>Home Office</option><option>Learning & Dev</option><option>Meals</option>
+                {(dropdowns.expense_category || [{ value: 'Travel', label: 'Travel' }]).map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
               <input required type="number" step="0.01" placeholder="Amount" value={reimb.amount} onChange={(e) => setReimb({ ...reimb, amount: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white" />
               <select value={reimb.currency_code} onChange={(e) => setReimb({ ...reimb, currency_code: e.target.value })} className="px-2 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white">
-                <option>USD</option><option>INR</option><option>GBP</option><option>AED</option><option>SGD</option>
+                {(currencies.length ? currencies : [{ code: 'USD' }]).map((c) => (
+                  <option key={c.code} value={c.code}>{c.code}</option>
+                ))}
               </select>
             </div>
             <button type="submit" className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium cursor-pointer">Submit Claim</button>
@@ -137,7 +141,9 @@ export default function EmployeeDashboard({ user, helpMap, onHelpUpdated }) {
           </h3>
           <form onSubmit={submitLeave} className="space-y-2.5">
             <select value={leave.leave_type} onChange={(e) => setLeave({ ...leave, leave_type: e.target.value })} className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white">
-              <option>Annual</option><option>Sick</option><option>Casual</option><option>Unpaid</option>
+              {(dropdowns.leave_type || [{ value: 'Annual', label: 'Annual' }]).map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
             <div className="grid grid-cols-3 gap-2">
               <input type="date" value={leave.start_date} onChange={(e) => setLeave({ ...leave, start_date: e.target.value })} className="px-2 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white" />

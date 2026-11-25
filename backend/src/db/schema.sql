@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS leave_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   firm_id INT NOT NULL,
   user_id INT NOT NULL,
-  leave_type ENUM('Annual', 'Sick', 'Casual', 'Unpaid') NOT NULL DEFAULT 'Annual',
+  leave_type VARCHAR(60) NOT NULL DEFAULT 'Annual',
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
   days DECIMAL(5, 1) NOT NULL,
@@ -168,4 +168,14 @@ CREATE TABLE IF NOT EXISTS ai_task_routing (
   auto_failover TINYINT(1) NOT NULL DEFAULT 1,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (primary_key_id) REFERENCES ai_api_keys(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS dropdown_values (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category VARCHAR(60) NOT NULL,
+  value VARCHAR(80) NOT NULL,
+  label VARCHAR(120) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 1,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  UNIQUE KEY uniq_cat_val (category, value)
 );

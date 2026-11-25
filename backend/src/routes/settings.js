@@ -118,4 +118,64 @@ router.put('/routing', async (req, res) => {
   }
 });
 
+// Get all dropdown values (grouped + raw)
+router.get('/dropdowns', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM dropdown_values ORDER BY category ASC, sort_order ASC, id ASC'
+    );
+    const grouped = {};
+    for (const r of rows) {
+      if (r.is_active) {
+        if (!grouped[r.category]) grouped[r.category] = [];
+        grouped[r.category].push({ value: r.value, label: r.label });
+      }
+    }
+    res.json({ dropdowns: grouped, raw: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load dropdown values' });
+  }
+});
+
+// Add a dropdown value
+router.post('/dropdowns', async (req, res) => {
+  try {
+    const { category, value, label, sort_order } = req.body;
+    if (!category || !value || !label) {
+      return res.status(400).json({ error: 'Category, value, and label are required' });
+    }
+    const [result] = await pool.query(
+      'INSERT INTO dropdown_values (category, value, label, sort_order, is_active) VALUES (?, ?, ?, ?, 1)',
+      [category.trim(), value.trim(), label.trim(), Number(sort_order || 1)]
+    );
+    res.status(201).json({ message: 'Dropdown value added', id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ error: err.code === 'ER_DUP_ENTRY' ? 'Value already exists in this category' : 'Failed to add dropdown value' });
+  }
+});
+
+// Toggle or edit a dropdown value
+router.patch('/dropdowns/:id', async (req, res) => {
+  try {
+    const { label, sort_order, is_active } = req.body;
+    await pool.query(
+      'UPDATE dropdown_values SET label = COALESCE(?, label), sort_order = COALESCE(?, sort_order), is_active = COALESCE(?, is_active) WHERE id = ?',
+      [label ?? null, sort_order ?? null, is_active ?? null, req.params.id]
+    );
+    res.json({ message: 'Dropdown value updated' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update dropdown value' });
+  }
+});
+
+// Delete a dropdown value
+router.delete('/dropdowns/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM dropdown_values WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Dropdown value deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete dropdown value' });
+  }
+});
+
 export default router;

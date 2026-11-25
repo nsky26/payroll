@@ -24,6 +24,7 @@ export async function initDatabase() {
 
   const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
   await rootConn.query(schemaSql);
+  await rootConn.query("ALTER TABLE leave_requests MODIFY COLUMN leave_type VARCHAR(60) NOT NULL DEFAULT 'Annual'");
 
   // Always ensure pre-filled section help texts exist
   await rootConn.query(`
@@ -41,7 +42,34 @@ export async function initDatabase() {
     ('emp_payslips', 'My Payslips', 'View your monthly/bi-weekly payslips with itemized Gross Pay, Statutory Deductions, Income Tax, and Net Take-Home Pay.'),
     ('emp_reimbursements', 'Submit Expense Claim (Multi-Currency)', 'Paste receipt text and click "Parse Receipt with Gemini" to auto-fill category, amount, and currency. Foreign currency claims are automatically converted to your firm base currency.'),
     ('emp_leaves', 'Apply for Leave', 'Submit a new leave request by selecting leave type, start/end dates, days, and reason. Track approval status below.'),
-    ('settings_api_keys', 'API Keys & Task-Based LLM Routing', 'Add multiple LLM API keys, set one active, and assign different keys per task (Text, Image/OCR, Payroll Audit, Copilot). When a key reaches its token limit, PayPulse AI automatically fails over to the next available key.');
+    ('settings_api_keys', 'API Keys & Task-Based LLM Routing', 'Add multiple LLM API keys, set one active, and assign different keys per task (Text, Image/OCR, Payroll Audit, Copilot). When a key reaches its token limit, PayPulse AI automatically fails over to the next available key.'),
+    ('settings_dropdowns', 'Dropdown Values Manager', 'Manage all application dropdown options (Expense Categories, Leave Types, Employee Roles, Pay Schedules, AI Models, AI Task Types) directly from MySQL.');
+  `);
+
+  // Seed default dropdown_values if empty
+  await rootConn.query(`
+    INSERT IGNORE INTO dropdown_values (category, value, label, sort_order, is_active) VALUES
+    ('expense_category', 'Travel', 'Travel', 1, 1),
+    ('expense_category', 'Home Office', 'Home Office', 2, 1),
+    ('expense_category', 'Learning & Dev', 'Learning & Dev', 3, 1),
+    ('expense_category', 'Meals', 'Meals', 4, 1),
+    ('leave_type', 'Annual', 'Annual', 1, 1),
+    ('leave_type', 'Sick', 'Sick', 2, 1),
+    ('leave_type', 'Casual', 'Casual', 3, 1),
+    ('leave_type', 'Unpaid', 'Unpaid', 4, 1),
+    ('employee_role', 'employee', 'Employee', 1, 1),
+    ('employee_role', 'manager', 'Manager', 2, 1),
+    ('pay_schedule', 'monthly', 'Monthly', 1, 1),
+    ('pay_schedule', 'biweekly', 'Bi-Weekly', 2, 1),
+    ('pay_schedule', 'semimonthly', 'Semi-Monthly', 3, 1),
+    ('ai_model', 'gemini-2.0-flash', 'gemini-2.0-flash', 1, 1),
+    ('ai_model', 'gemini-1.5-flash', 'gemini-1.5-flash', 2, 1),
+    ('ai_model', 'gemini-2.0-pro', 'gemini-2.0-pro', 3, 1),
+    ('ai_task_type', 'all', 'Task: All (Failover Pool)', 1, 1),
+    ('ai_task_type', 'text', 'Task: Text', 2, 1),
+    ('ai_task_type', 'image', 'Task: Image / OCR', 3, 1),
+    ('ai_task_type', 'audit', 'Task: Payroll Audit', 4, 1),
+    ('ai_task_type', 'copilot', 'Task: Copilot', 5, 1);
   `);
 
   // Seed default AI API keys and task routing if empty

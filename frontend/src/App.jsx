@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, LogOut, Building2, Settings, Key, ChevronDown } from 'lucide-react';
+import { Sparkles, LogOut, Building2, Settings, Key, ChevronDown, ListFilter } from 'lucide-react';
 import { apiFetch, clearAuth, getStoredUser } from './api';
 import LoginPage from './components/LoginPage';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
@@ -8,13 +8,17 @@ import ManagerDashboard from './components/ManagerDashboard';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import CopilotDrawer from './components/CopilotDrawer';
 import SettingsApiKeysModal from './components/SettingsApiKeysModal';
+import SettingsDropdownsModal from './components/SettingsDropdownsModal';
 
 export default function App() {
   const [user, setUser] = useState(getStoredUser());
   const [inspectingFirm, setInspectingFirm] = useState(null);
   const [helpMap, setHelpMap] = useState({});
+  const [dropdowns, setDropdowns] = useState({});
+  const [currencies, setCurrencies] = useState([]);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [apiKeysOpen, setApiKeysOpen] = useState(false);
+  const [dropdownsOpen, setDropdownsOpen] = useState(false);
 
   async function loadHelp() {
     try {
@@ -25,8 +29,24 @@ export default function App() {
     }
   }
 
+  async function loadDropdowns() {
+    try {
+      const [ddRes, refRes] = await Promise.all([
+        apiFetch('/settings/dropdowns'),
+        apiFetch('/firm/reference')
+      ]);
+      setDropdowns(ddRes.dropdowns || {});
+      setCurrencies(refRes.currencies || []);
+    } catch {
+      // Ignore if unauthenticated
+    }
+  }
+
   useEffect(() => {
-    if (user) loadHelp();
+    if (user) {
+      loadHelp();
+      loadDropdowns();
+    }
   }, [user?.id]);
 
   function handleLogout() {
@@ -82,7 +102,7 @@ export default function App() {
                 <Settings className="w-3.5 h-3.5 text-indigo-400" /> Settings <ChevronDown className="w-3 h-3" />
               </button>
               {settingsMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1 z-50">
+                <div className="absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1 z-50">
                   <button
                     onClick={() => {
                       setSettingsMenuOpen(false);
@@ -91,6 +111,15 @@ export default function App() {
                     className="w-full px-3.5 py-2 text-left text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
                   >
                     <Key className="w-3.5 h-3.5 text-indigo-400" /> API Keys & LLM Routing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSettingsMenuOpen(false);
+                      setDropdownsOpen(true);
+                    }}
+                    className="w-full px-3.5 py-2 text-left text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                  >
+                    <ListFilter className="w-3.5 h-3.5 text-emerald-400" /> Dropdown Values
                   </button>
                 </div>
               )}
@@ -115,16 +144,18 @@ export default function App() {
             user={user}
             helpMap={helpMap}
             onHelpUpdated={loadHelp}
+            dropdowns={dropdowns}
             inspectingFirm={inspectingFirm}
             onBackToSuper={user.role === 'super_admin' ? handleBackToSuper : null}
           />
         )}
         {user.role === 'manager' && <ManagerDashboard user={user} helpMap={helpMap} onHelpUpdated={loadHelp} />}
-        {user.role === 'employee' && <EmployeeDashboard user={user} helpMap={helpMap} onHelpUpdated={loadHelp} />}
+        {user.role === 'employee' && <EmployeeDashboard user={user} helpMap={helpMap} onHelpUpdated={loadHelp} dropdowns={dropdowns} currencies={currencies} />}
       </main>
 
       <CopilotDrawer user={user} />
-      <SettingsApiKeysModal open={apiKeysOpen} onClose={() => setApiKeysOpen(false)} user={user} helpMap={helpMap} onHelpUpdated={loadHelp} />
+      <SettingsApiKeysModal open={apiKeysOpen} onClose={() => setApiKeysOpen(false)} user={user} helpMap={helpMap} onHelpUpdated={loadHelp} dropdowns={dropdowns} />
+      <SettingsDropdownsModal open={dropdownsOpen} onClose={() => setDropdownsOpen(false)} user={user} helpMap={helpMap} onHelpUpdated={loadHelp} onDropdownsUpdated={loadDropdowns} />
     </div>
   );
 }
